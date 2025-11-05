@@ -19,7 +19,11 @@ int countNeighbors(const vector<uint8_t>& grid, int r, int c, int rows, int cols
             // check bounds
             if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
                 int n_index = nr * cols + nc; // calc the index we need in the 1D array
-                count += grid[n_index];
+
+                // dont 100% understand but this basically makes it conditional
+                // which makes the count++ a variable / volatile work
+                // also due to a point in the paper about how variable arithmetic can cause variable speed ups
+                if (grid[n_index] == 1) { count++; }
             }
         }
     }
