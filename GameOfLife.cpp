@@ -5,6 +5,7 @@
 
 using namespace std;
 
+// count neighbor of a given cell
 int countNeighbors(const vector<vector<uint8_t>>& grid, int r, int c) {
     int rows = grid.size();
     int cols = grid[0].size();
@@ -21,6 +22,7 @@ int countNeighbors(const vector<vector<uint8_t>>& grid, int r, int c) {
     return count;
 }
 
+// print it out for visualization
 void printGrid(const vector<vector<uint8_t>>& grid) {
     for (auto& row : grid) {
         for (auto cell : row)
@@ -51,12 +53,12 @@ int main() {
         // go through all the rows and columns
         for (int r = 0; r < rows; ++r) {
             for (int c = 0; c < cols; ++c) {
-                int n = countNeighbors(grid, r, c);
+                int n = countNeighbors(grid, r, c); // how many neighbors we have
                 if (grid[r][c]) {
-                    newGrid[r][c] = (n == 2 || n == 3);
+                    newGrid[r][c] = (n == 2 || n == 3); // if we going dead
                 }
                 else {
-                    newGrid[r][c] = (n == 3);
+                    newGrid[r][c] = (n == 3); // if becoming alive
                 }
             }
         }
