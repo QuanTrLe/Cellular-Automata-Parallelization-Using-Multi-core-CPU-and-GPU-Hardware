@@ -15,6 +15,7 @@ int countNeighbors(const vector<uint8_t>& grid, int r, int c, int paddedCols) {
     int idx = r * paddedCols + c;
 
     // variable arithmetic from the paper without any bounds-checking overhead
+    // for cases of border padding, they should be auto 0
     if (grid[idx - paddedCols - 1]) count++; // top from left to right
     if (grid[idx - paddedCols])     count++;
     if (grid[idx - paddedCols + 1]) count++;
@@ -30,10 +31,10 @@ int countNeighbors(const vector<uint8_t>& grid, int r, int c, int paddedCols) {
 }
 
 // print it out for visualization
-void printGrid(const vector<uint8_t>& grid, int rows, int cols) {
-    for (int r = 0; r < rows; ++r) {
-        for (int c = 0; c < cols; ++c) {
-            int index = r * cols + c; // calc the 1D array index
+void printGrid(const vector<uint8_t>& grid, int rows, int cols, int paddedCols) {
+    for (int r = 1; r <= rows; ++r) {
+        for (int c = 1; c <= cols; ++c) {
+            int index = r * paddedCols + c; // calc the 1D array index
             cout << (grid[index] ? "■ " : ". ");
         }
         cout << '\n';
@@ -48,8 +49,9 @@ void run_simulation(vector<uint8_t>& currentGrid, vector<uint8_t>& newGrid, int 
     for (int currentGeneration = 0; currentGeneration < generationLimit; ++currentGeneration) {
 
         // go through all the rows and columns and check + update
-        for (int r = 1; r < rows; ++r) {
-            for (int c = 1; c < cols; ++c) {
+        // remember we're starting at 1 to skip over padded cells
+        for (int r = 1; r <= rows; ++r) {
+            for (int c = 1; c <= cols; ++c) {
                 int index = r * paddedCols + c; // calc index
                 int n = countNeighbors(currentGrid, r, c, paddedCols); // how many neighbors we have
 
@@ -74,7 +76,7 @@ int main() {
     int generationLimit = 10;
 
     // the array to store the entire lattice / grid in, specifically a 2D array for row and column
-    vector<uint8_t> grid(paddedRows * paddedCols); // current grid
+    vector<uint8_t> grid(paddedRows * paddedCols, 0); // current grid
     vector<uint8_t> newGrid = grid; // grid after each new generation
 
     // Currently setting the initial pattern by hand, bit dubious but eh it's jsut testing rn
@@ -104,7 +106,7 @@ int main() {
     cout << "\nSimulation finished." << endl;
     cout << "Total serial execution time: " << elapsed.count() << " seconds." << endl;
     cout << "\nFinal Grid State:" << endl;
-    printGrid(grid, rows, cols);
+    printGrid(grid, rows, cols, paddedCols);
 
     return 0;
 }
