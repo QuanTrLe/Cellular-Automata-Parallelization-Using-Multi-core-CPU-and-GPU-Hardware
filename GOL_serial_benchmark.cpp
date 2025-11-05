@@ -7,26 +7,25 @@
 using namespace std;
 
 // count neighbor of a given cell
-int countNeighbors(const vector<uint8_t>& grid, int r, int c, int rows, int cols) {
+int countNeighbors(const vector<uint8_t>& grid, int r, int c, int paddedCols) {
     int count = 0;
 
-    for (int dr = -1; dr <= 1; ++dr) { // row offsets from -1 (row above) to 1 (row below)
-        for (int dc = -1; dc <= 1; ++dc) { // same but column
-            if (dr == 0 && dc == 0) continue; // the current cell we're looking at
+    // calc the 1D index of the current cell (r, c)
+    // r and c are 1-based (e.g., 1 to 16)
+    int idx = r * paddedCols + c;
 
-            int nr = r + dr, nc = c + dc; // calc that neighbor coords
+    // variable arithmetic from the paper without any bounds-checking overhead
+    if (grid[idx - paddedCols - 1]) count++; // top from left to right
+    if (grid[idx - paddedCols])     count++;
+    if (grid[idx - paddedCols + 1]) count++;
 
-            // check bounds
-            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
-                int n_index = nr * cols + nc; // calc the index we need in the 1D array
+    if (grid[idx - 1])               count++; // mid left and right
+    if (grid[idx + 1])               count++;
 
-                // dont 100% understand but this basically makes it conditional
-                // which makes the count++ a variable / volatile work
-                // also due to a point in the paper about how variable arithmetic can cause variable speed ups
-                if (grid[n_index] == 1) { count++; }
-            }
-        }
-    }
+    if (grid[idx + paddedCols - 1]) count++; // bottom from left to right
+    if (grid[idx + paddedCols])     count++;
+    if (grid[idx + paddedCols + 1]) count++;
+
     return count;
 }
 
@@ -44,15 +43,15 @@ void printGrid(const vector<uint8_t>& grid, int rows, int cols) {
 // basically the function that we can just toss the grid in and time it
 // passing newGrid in at the start jsut to avoid having to make / allocate stuff every iteration
 // also generationLimit is how many tiems we're running the simulation
-void run_simulation(vector<uint8_t>& currentGrid, vector<uint8_t>& newGrid, int rows, int cols, int generationLimit) {
+void run_simulation(vector<uint8_t>& currentGrid, vector<uint8_t>& newGrid, int rows, int cols, int generationLimit, int paddedCols) {
     // be zooming through the generations til we're done
     for (int currentGeneration = 0; currentGeneration < generationLimit; ++currentGeneration) {
 
         // go through all the rows and columns and check + update
-        for (int r = 0; r < rows; ++r) {
-            for (int c = 0; c < cols; ++c) {
-                int index = r * cols + c; // calc index
-                int n = countNeighbors(currentGrid, r, c, rows, cols); // how many neighbors we have
+        for (int r = 1; r < rows; ++r) {
+            for (int c = 1; c < cols; ++c) {
+                int index = r * paddedCols + c; // calc index
+                int n = countNeighbors(currentGrid, r, c, paddedCols); // how many neighbors we have
 
                 if (currentGrid[index]) {
                     newGrid[index] = (n == 2 || n == 3); // if we dead or not
@@ -71,17 +70,18 @@ void run_simulation(vector<uint8_t>& currentGrid, vector<uint8_t>& newGrid, int 
 int main() {
     // size of the grid, as a square currently though
     int rows = 16, cols = 16; // these should be larger but ehhh
+    int paddedRows = rows + 2, paddedCols = cols + 2; // for padding with 0, always padding by 2, 1 on each side
     int generationLimit = 10;
 
     // the array to store the entire lattice / grid in, specifically a 2D array for row and column
-    vector<uint8_t> grid(rows * cols); // current grid
+    vector<uint8_t> grid(paddedRows * paddedCols); // current grid
     vector<uint8_t> newGrid = grid; // grid after each new generation
 
     // Currently setting the initial pattern by hand, bit dubious but eh it's jsut testing rn
     // Example: a blinker pattern
-    grid[3 * cols + 2] = 1; // (3, 2)
-    grid[3 * cols + 3] = 1; // (3, 3)
-    grid[3 * cols + 4] = 1; // (3, 4)
+    grid[(3 + 1) * paddedCols + (2 + 1)] = 1; // (3, 2), + 1 becasue of the padding on each side
+    grid[(3 + 1) * paddedCols + (3 + 1)] = 1; // (3, 3)
+    grid[(3 + 1) * paddedCols + (4 + 1)] = 1; // (3, 4)
 
     // just outputing so we know
     cout << "Starting Game of Life simulation..." << endl;
@@ -93,7 +93,7 @@ int main() {
 
     // process the whole thing by passing it into a function
     // i have the power of god and anime on my side
-    run_simulation(grid, newGrid, rows, cols, generationLimit);
+    run_simulation(grid, newGrid, rows, cols, generationLimit, paddedCols);
 
     // end clock and time
     auto end_time = chrono::high_resolution_clock::now();
