@@ -39,3 +39,22 @@
 
 # debug information files
 *.dwo
+
+# Visual Studio Projects
+.vs/
+*.suo
+*.user
+*.slnx
+*.sqlite
+*.db
+*.opensdf
+*.sdf
+
+# Build Output
+x64/
+Debug/
+Release/
+*.obj
+*.exe
+*.pdb
+*.ilk
