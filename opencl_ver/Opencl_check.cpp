@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <vector>
 #include <CL/cl.h>
 
 #define CHECK_ERROR(err) \
