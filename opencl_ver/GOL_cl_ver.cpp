@@ -3,6 +3,7 @@
 #include <chrono>
 #include <thread>
 #include <iomanip>
+#include <CL/cl.h>
 
 using namespace std;
 

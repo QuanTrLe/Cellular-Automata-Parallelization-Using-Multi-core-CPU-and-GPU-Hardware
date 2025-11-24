@@ -22,4 +22,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="game_of_life.cl" />
+  </ItemGroup>
 </Project>
