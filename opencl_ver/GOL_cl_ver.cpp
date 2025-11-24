@@ -48,6 +48,12 @@ void checkBuildError(cl_int err, cl_program program, cl_device_id device_id) {
 		exit(1);
 	}
 }
+void checkError(cl_int err, const char* operationName) {
+	if (err != CL_SUCCESS) {
+		cerr << "Error during " << operationName << ": " << err << endl;
+		exit(1);
+	}
+}
 
 
 // for testing / debugging
@@ -61,6 +67,7 @@ void printGrid(const vector<uint8_t>& grid, int rows, int cols, int paddedCols) 
 		cout << '\n';
 	}
 }
+
 
 int main(int argc, char* argv[]) {
 	// details of grid and running
@@ -127,16 +134,32 @@ int main(int argc, char* argv[]) {
 	// write data set into input array + setting arguments to compute kernel
 	// not giving one to gridB bc that's the output first gen
 	err = clEnqueueWriteBuffer(queue, d_gridA, CL_TRUE, 0, dataSize, grid.data(), 0, NULL, NULL);
-	err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_gridA); // setting args for the kernel func
-	err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &d_gridB);
-	err |= clSetKernelArg(kernel, 2, sizeof(int), &rows);
+	err |= clSetKernelArg(kernel, 2, sizeof(int), &rows); // setting const args for the kernel func
 	err |= clSetKernelArg(kernel, 3, sizeof(int), &columns);
 	err |= clSetKernelArg(kernel, 4, sizeof(int), &paddedColumns);
 
+	err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_gridA);
+	err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &d_gridB);
+
 
 	// executing kernel over entire range of data set
-	// go over til we hti the generation limit
-	err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkGroupSize, localWorkGroupSize, 0, NULL, NULL);
+	// go over til we hti the generation limit, ping pong the grid we're writing on as newGrid
+	cout << "Running" << generationLimit << " generations..." << endl;
+
+	for (int i = 0; i < generationLimit; i++) {
+		// setting the grid arguments for each generation, changing what grid we write to and what we use as base grid
+		err = clSetKernelArg(kernel, i%2, sizeof(cl_mem), &d_gridA);
+		err |= clSetKernelArg(kernel, (i+1)%2, sizeof(cl_mem), &d_gridB);
+
+		checkError(err, "Setting Kernel Args");
+
+		err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkGroupSize, localWorkGroupSize, 0, NULL, NULL);
+
+		if (err != CL_SUCCESS) {
+			cout << "Error executing kernel: " << err << endl;
+			return 1;
+		}
+	}
 
 	// waiting for command queue to get servuiced before reading back results
 	clFinish(queue);
