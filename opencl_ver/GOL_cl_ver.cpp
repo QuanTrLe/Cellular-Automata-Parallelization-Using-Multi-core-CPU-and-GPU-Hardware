@@ -98,7 +98,19 @@ int main(int argc, char* argv[]) {
 	// details of grid and running
 	int rows = 16, columns = 16;
 	int paddedRows = rows + 2, paddedColumns = columns + 2;
+
 	int generationLimit = 10;
+
+	size_t globalWorkGroupSize[2];
+	size_t localWorkGroupSize[2];
+	cl_int err; // for reporting error codes
+	
+	// for the below we can jsut pass NULL to let it auto decide
+	localWorkGroupSize[0] = 8; // # of work items in each local work group
+	localWorkGroupSize[1] = 8;
+	globalWorkGroupSize[0] = (size_t) ceil(columns / (float)localWorkGroupSize[0]) * localWorkGroupSize[0]; // # of total work items, localSize MUST be devisor
+	globalWorkGroupSize[1] = (size_t) ceil(rows / (float)localWorkGroupSize[1]) * localWorkGroupSize[1];
+
 
 	// initializing the grid as a 1D array of chars
 	vector<uint8_t> grid(paddedRows * paddedColumns, 0); // current grid
@@ -116,6 +128,5 @@ int main(int argc, char* argv[]) {
 	cl_command_queue queue;           // command queue
 	cl_program program;               // program
 	cl_kernel kernel;                 // kernel
-
 
 }
