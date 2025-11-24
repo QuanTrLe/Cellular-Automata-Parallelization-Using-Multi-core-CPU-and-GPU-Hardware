@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
 	// read said results and print it out to test
 	clEnqueueReadBuffer(queue, d_gridB, CL_TRUE, 0, dataSize, grid.data(), 0, NULL, NULL);
 	cout << "\nFinal Grid State (GPU Result):" << endl;
-	// print stuff here
+	printGrid(grid, rows, columns, paddedColumns);
 
 
 	// free all the resources we held
