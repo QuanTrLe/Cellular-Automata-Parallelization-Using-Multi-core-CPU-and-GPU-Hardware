@@ -87,9 +87,16 @@ int main(int argc, char* argv[]) {
 	globalWorkGroupSize[1] = (size_t) ceil(rows / (float)localWorkGroupSize[1]) * localWorkGroupSize[1];
 
 
-	// initializing the grid as a 1D array of chars
+	// initializing the grid as a 1D array of chars + blinker pattern
 	vector<uint8_t> grid(paddedRows * paddedColumns, 0); // current grid
 	vector<uint8_t> newGrid = grid; // grid after each new generation
+	// blinker pattern
+	int startRow = 3 + 1, startCol = 2 + 1;
+
+	grid[startRow * paddedColumns + startCol] = 1;       // top
+	grid[startRow * paddedColumns + (startCol + 1)] = 1; // middle
+	grid[startRow * paddedColumns + (startCol + 2)] = 1; // bottom
+
 
 	// device / kernel input buffers
 	cl_mem d_gridA; // d_ is jsut for marking as for device
@@ -138,9 +145,6 @@ int main(int argc, char* argv[]) {
 	err |= clSetKernelArg(kernel, 3, sizeof(int), &columns);
 	err |= clSetKernelArg(kernel, 4, sizeof(int), &paddedColumns);
 
-	err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_gridA);
-	err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &d_gridB);
-
 
 	// executing kernel over entire range of data set
 	// go over til we hti the generation limit, ping pong the grid we're writing on as newGrid
@@ -150,22 +154,20 @@ int main(int argc, char* argv[]) {
 		// setting the grid arguments for each generation, changing what grid we write to and what we use as base grid
 		err = clSetKernelArg(kernel, i%2, sizeof(cl_mem), &d_gridA);
 		err |= clSetKernelArg(kernel, (i+1)%2, sizeof(cl_mem), &d_gridB);
-
 		checkError(err, "Setting Kernel Args");
 
 		err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkGroupSize, localWorkGroupSize, 0, NULL, NULL);
-
-		if (err != CL_SUCCESS) {
-			cout << "Error executing kernel: " << err << endl;
-			return 1;
-		}
+		checkError(err, "EnqueueNDRangeKernel");
 	}
+
 
 	// waiting for command queue to get servuiced before reading back results
 	clFinish(queue);
 
 	// read said results and print it out to test
-	clEnqueueReadBuffer(queue, d_gridB, CL_TRUE, 0, dataSize, grid.data(), 0, NULL, NULL);
+	cl_mem finalResultBuffer = (generationLimit % 2 == 0) ? d_gridA : d_gridB; // which grid to read from
+	clEnqueueReadBuffer(queue, finalResultBuffer, CL_TRUE, 0, dataSize, grid.data(), 0, NULL, NULL);
+
 	cout << "\nFinal Grid State (GPU Result):" << endl;
 	printGrid(grid, rows, columns, paddedColumns);
 
