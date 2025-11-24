@@ -6,7 +6,7 @@ __kernel void updateGrid(
     __global char* newGrid, // new grid we'll be writing to
     const int rowSize, // max size for the grid, need for special cases
     const int columnSize, 
-    const int paddedCols)
+    const int paddedColumns)
 {
     int count = 0; // how many neighbors we got
 
@@ -21,20 +21,20 @@ __kernel void updateGrid(
     }
 
     // calc the 1D index of the current cell (row, column)
-    int cellIndex = row * paddedCols + column; // row and column are 1-based (1 to 16 or whatever size is)
+    int cellIndex = row * paddedColumns + column; // row and column are 1-based (1 to 16 or whatever size is)
 
     // variable arithmetic from the paper without any bounds-checking overhead
     // for cases of border padding, they should be auto 0
-    count += oldGrid[cellIndex - paddedCols - 1]; // top from left to right
-    count += oldGrid[cellIndex - paddedCols];
-    count += oldGrid[cellIndex - paddedCols + 1];
+    count += oldGrid[cellIndex - paddedColumns - 1]; // top from left to right
+    count += oldGrid[cellIndex - paddedColumns];
+    count += oldGrid[cellIndex - paddedColumns + 1];
 
     count += oldGrid[cellIndex - 1]; // mid left and right
     count += oldGrid[cellIndex + 1];
 
-    count += oldGrid[cellIndex + paddedCols - 1]; // bottom from left to right
-    count += oldGrid[cellIndex + paddedCols];
-    count += oldGrid[cellIndex + paddedCols + 1];
+    count += oldGrid[cellIndex + paddedColumns - 1]; // bottom from left to right
+    count += oldGrid[cellIndex + paddedColumns];
+    count += oldGrid[cellIndex + paddedColumns + 1];
 
     // if neighbor count = 3 then alive, no matter previous state
     // but if 2 then only alive if was currently alive

@@ -184,9 +184,17 @@ int main(int argc, char* argv[]) {
 	// write data set into input array + setting arguments to compute kernel
 	// not giving one to gridB bc that's the output first gen
 	err = clEnqueueWriteBuffer(queue, d_gridA, CL_TRUE, 0, dataSize, grid.data(), 0, NULL, NULL);
-	err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_gridA);
+	err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_gridA); // setting args for the kernel func
+	err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &d_gridB);
+	err |= clSetKernelArg(kernel, 2, sizeof(int), &rows);
+	err |= clSetKernelArg(kernel, 3, sizeof(int), &columns);
+	err |= clSetKernelArg(kernel, 4, sizeof(int), &paddedColumns);
 
 
 	// executing kernel over entire range of data set
-	err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, &globalWorkGroupSize, &localWorkGroupSize, 0, NULL, NULL);
+	// go over til we hti the generation limit
+	err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkGroupSize, localWorkGroupSize, 0, NULL, NULL);
+
+	// waiting for command queue to get servuiced before reading back results
+	clFinish(queue);
 }
