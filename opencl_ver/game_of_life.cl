@@ -2,9 +2,9 @@
 // in one generation get the neighbor count of a cell and return that state of that cell
 // arguments not specified are defaulted to __private, also has __constant, __local, and __global
 __kernel void updateGrid(
-    __global const char* oldGrid, // const because we're only reading from this
-    __global char* newGrid, // new grid we'll be writing to
-    const int rowSize, // max size for the grid, need for special cases
+    __global const char* oldGrid,       // const because we're only reading from this
+    __global char* newGrid,             // new grid we'll be writing to
+    const int rowSize,                  // max size for the grid, need for special cases
     const int columnSize, 
     const int paddedColumns)
 {
