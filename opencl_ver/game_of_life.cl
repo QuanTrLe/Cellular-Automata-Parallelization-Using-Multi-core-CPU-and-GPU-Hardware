@@ -1,60 +1,46 @@
 // the work of a single thread
 // in one generation get the neighbor count of a cell and return that state of that cell
-
-int updateGrid(
-    __global const char* oldGrid, 
-    __global char* newGrid,
-    int row, 
-    int column, 
-    int paddedCols)
+// arguments not specified are defaulted to __private, also has __constant, __local, and __global
+__kernel void updateGrid(
+    __global const char* oldGrid, // const because we're only reading from this
+    __global char* newGrid, // new grid we'll be writing to
+    const int rowSize, // max size for the grid
+    const int columnSize,
+    const int paddedCols)
 {
-    int count = 0;
+    int count = 0; // how many neighbors we got
+    int row = get_global_id(0);
+    int column = get_global_id(1);
 
-    // calc the 1D index of the current cell (r, c)
-    // r and c are 1-based (e.g., 1 to 16)
-    int idx = r * paddedCols + c;
+    // if row / column is 0 (or smaller than 1) or max then that's in the padded area / not needed
+    if (row < 1 || row > rowSize || column < 1 || column > columnSize) {
+        return; // eject immediately
+    }
+
+    // calc the 1D index of the current cell (row, column)
+    int cellIndex = row * paddedCols + column; // row and column are 1-based (1 to 16 or whatever size is)
 
     // variable arithmetic from the paper without any bounds-checking overhead
     // for cases of border padding, they should be auto 0
-    if (grid[idx - paddedCols - 1]) count++; // top from left to right
-    if (grid[idx - paddedCols])     count++;
-    if (grid[idx - paddedCols + 1]) count++;
+    if (oldGrid[cellIndex - paddedCols - 1]) { count++; } // top from left to right
+    if (oldGrid[cellIndex - paddedCols]) { count++; }
+    if (oldGrid[cellIndex - paddedCols + 1]) { count++; }
 
-    if (grid[idx - 1])               count++; // mid left and right
-    if (grid[idx + 1])               count++;
+    if (oldGrid[cellIndex - 1]) { count++; } // mid left and right
+    if (oldGrid[cellIndex + 1]) { count++; }
 
-    if (grid[idx + paddedCols - 1]) count++; // bottom from left to right
-    if (grid[idx + paddedCols])     count++;
-    if (grid[idx + paddedCols + 1]) count++;
+    if (oldGrid[cellIndex + paddedCols - 1]) { count++; } // bottom from left to right
+    if (oldGrid[cellIndex + paddedCols]) { count++; }
+    if (oldGrid[cellIndex + paddedCols + 1]) { count++; }
 
-    return count;
+    // if already alive and 2 / 3 neighbor then stay alive ((count == 2 || count == 3) && oldGrid[cellIndex])
+    // if currently dead and 3 neighbor then become alive (count == 3 && !oldGrid[cellIndex])
+    newGrid[cellIndex] = ( 
+        ((count == 2 || count == 3) && oldGrid[cellIndex]) || 
+        (count == 3 && !oldGrid[cellIndex])
+    );
 }
 
 
-// basically the function that we can just toss the grid in and time it
-// passing newGrid in at the start jsut to avoid having to make / allocate stuff every iteration
-// also generationLimit is how many tiems we're running the simulation
-void run_simulation(vector<uint8_t>& currentGrid, vector<uint8_t>& newGrid, int rows, int cols, int generationLimit, int paddedCols) {
-    // be zooming through the generations til we're done
-    for (int currentGeneration = 0; currentGeneration < generationLimit; ++currentGeneration) {
-
-        // go through all the rows and columns and check + update
-        // remember we're starting at 1 to skip over padded cells
-        for (int r = 1; r <= rows; ++r) {
-            for (int c = 1; c <= cols; ++c) {
-                int index = r * paddedCols + c; // calc index
-                int n = countNeighbors(currentGrid, r, c, paddedCols); // how many neighbors we have
-
-                if (currentGrid[index]) {
-                    newGrid[index] = (n == 2 || n == 3); // if we dead or not
-                }
-                else {
-                    newGrid[index] = (n == 3); // we becomign alive?
-                }
-            }
-        }
-
-        // remember to update to the new grid after checking everything
-        currentGrid.swap(newGrid);
-    }
-}
+// too long a function?
+// if statements?
