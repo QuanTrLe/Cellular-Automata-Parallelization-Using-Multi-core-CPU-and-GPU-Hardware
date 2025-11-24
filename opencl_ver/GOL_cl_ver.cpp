@@ -17,75 +17,6 @@
 
 using namespace std;
 
-//// basically the function that we can just toss the grid in and time it
-//// passing newGrid in at the start jsut to avoid having to make / allocate stuff every iteration
-//// also generationLimit is how many tiems we're running the simulation
-//void run_simulation(vector<uint8_t>& currentGrid, vector<uint8_t>& newGrid, int rows, int cols, int generationLimit, int paddedCols) {
-//    // be zooming through the generations til we're done
-//    for (int currentGeneration = 0; currentGeneration < generationLimit; ++currentGeneration) {
-//
-//        // go through all the rows and columns and check + update
-//        // remember we're starting at 1 to skip over padded cells
-//        for (int r = 1; r <= rows; ++r) {
-//            for (int c = 1; c <= cols; ++c) {
-//                int index = r * paddedCols + c; // calc index
-//                int n = countNeighbors(currentGrid, r, c, paddedCols); // how many neighbors we have
-//
-//                if (currentGrid[index]) {
-//                    newGrid[index] = (n == 2 || n == 3); // if we dead or not
-//                }
-//                else {
-//                    newGrid[index] = (n == 3); // we becomign alive?
-//                }
-//            }
-//        }
-//
-//        // remember to update to the new grid after checking everything
-//        currentGrid.swap(newGrid);
-//    }
-//}
-//
-//int test() {
-//    // size of the grid, as a square currently though
-//    int rows = 16, cols = 16; // these should be larger but ehhh
-//    int paddedRows = rows + 2, paddedCols = cols + 2; // for padding with 0, always padding by 2, 1 on each side
-//    int generationLimit = 10;
-//
-//    // the array to store the entire lattice / grid in, specifically a 2D array for row and column
-//    vector<uint8_t> grid(paddedRows * paddedCols, 0); // current grid
-//    vector<uint8_t> newGrid = grid; // grid after each new generation
-//
-//    // Currently setting the initial pattern by hand, bit dubious but eh it's jsut testing rn
-//    // Example: a blinker pattern
-//    grid[(3 + 1) * paddedCols + (2 + 1)] = 1; // (3, 2), + 1 becasue of the padding on each side
-//    grid[(3 + 1) * paddedCols + (3 + 1)] = 1; // (3, 3)
-//    grid[(3 + 1) * paddedCols + (4 + 1)] = 1; // (3, 4)
-//
-//    // just outputing so we know
-//    cout << "Starting Game of Life simulation..." << endl;
-//    cout << "Grid Size: " << rows << "x" << cols << endl;
-//    cout << "Generations: " << generationLimit << endl;
-//
-//    // starting clock
-//    auto start_time = chrono::high_resolution_clock::now();
-//
-//    // process the whole thing by passing it into a function
-//    // i have the power of god and anime on my side
-//    run_simulation(grid, newGrid, rows, cols, generationLimit, paddedCols);
-//
-//    // end clock and time
-//    auto end_time = chrono::high_resolution_clock::now();
-//    chrono::duration<double> elapsed = end_time - start_time;
-//
-//    // end output
-//    cout << fixed << setprecision(4);
-//    cout << "\nSimulation finished." << endl;
-//    cout << "Total serial execution time: " << elapsed.count() << " seconds." << endl;
-//    cout << "\nFinal Grid State:" << endl;
-//    printGrid(grid, rows, cols, paddedCols);
-//
-//    return 0;
-//}
 
 // helper function to read the .cl file into a string
 // needed for creating program with source for OpenCL
@@ -118,6 +49,18 @@ void checkBuildError(cl_int err, cl_program program, cl_device_id device_id) {
 	}
 }
 
+
+// for testing / debugging
+// print it out for visualization
+void printGrid(const vector<uint8_t>& grid, int rows, int cols, int paddedCols) {
+	for (int r = 1; r <= rows; ++r) {
+		for (int c = 1; c <= cols; ++c) {
+			int index = r * paddedCols + c; // calc the 1D array index
+			cout << (grid[index] ? "■ " : ". ");
+		}
+		cout << '\n';
+	}
+}
 
 int main(int argc, char* argv[]) {
 	// details of grid and running
@@ -197,4 +140,20 @@ int main(int argc, char* argv[]) {
 
 	// waiting for command queue to get servuiced before reading back results
 	clFinish(queue);
+
+	// read said results and print it out to test
+	clEnqueueReadBuffer(queue, d_gridB, CL_TRUE, 0, dataSize, grid.data(), 0, NULL, NULL);
+	cout << "\nFinal Grid State (GPU Result):" << endl;
+	// print stuff here
+
+
+	// free all the resources we held
+	clReleaseMemObject(d_gridA);
+	clReleaseMemObject(d_gridB);
+	clReleaseKernel(kernel);
+	clReleaseProgram(program);
+	clReleaseCommandQueue(queue);
+	clReleaseContext(context);
+
+	return 0;
 }
