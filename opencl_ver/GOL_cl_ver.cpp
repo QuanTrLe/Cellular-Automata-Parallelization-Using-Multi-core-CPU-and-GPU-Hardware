@@ -2,10 +2,14 @@
 #include <vector>
 #include <chrono>
 #include <thread>
+
 #include <iomanip>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+
+#include<fstream>
+#include<sstream>
 #include <CL/cl.h>
 
 #define PROGRAM_FILE "game_of_life.cl"
@@ -13,17 +17,6 @@
 
 using namespace std;
 
-//// print it out for visualization
-//void printGrid(const vector<uint8_t>& grid, int rows, int cols, int paddedCols) {
-//    for (int r = 1; r <= rows; ++r) {
-//        for (int c = 1; c <= cols; ++c) {
-//            int index = r * paddedCols + c; // calc the 1D array index
-//            cout << (grid[index] ? "■ " : ". ");
-//        }
-//        cout << '\n';
-//    }
-//}
-//
 //// basically the function that we can just toss the grid in and time it
 //// passing newGrid in at the start jsut to avoid having to make / allocate stuff every iteration
 //// also generationLimit is how many tiems we're running the simulation
@@ -94,6 +87,38 @@ using namespace std;
 //    return 0;
 //}
 
+// helper function to read the .cl file into a string
+// needed for creating program with source for OpenCL
+string loadKernelSource(const char* filename) {
+	ifstream file(filename);
+	if (!file.is_open()) { // jsut making sure we aok
+		cerr << "Error: Could not open kernel file: " << filename << endl;
+		exit(1);
+	}
+
+	stringstream buffer; // get the actual thing into buffer
+	buffer << file.rdbuf();
+	return buffer.str(); // then return as string
+}
+
+
+// for checking the build log / error returned by the OpenCL functions / operations
+void checkBuildError(cl_int err, cl_program program, cl_device_id device_id) {
+	if (err != CL_SUCCESS) {
+		// get the size of log
+		size_t len;
+		char buffer[2048];
+
+		// ask OpenCL for log text
+		clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+
+		// print it and crash afterwards lmao
+		cout << "--- Build Log --- \n" << buffer << endl;
+		exit(1);
+	}
+}
+
+
 int main(int argc, char* argv[]) {
 	// details of grid and running
 	int rows = 16, columns = 16;
@@ -121,6 +146,7 @@ int main(int argc, char* argv[]) {
 	cl_mem d_gridB; // these two will be changing as old and new later
 	size_t dataSize = paddedRows * paddedColumns * sizeof(uint8_t); // how big we making these
 
+
 	// OpenCL information
 	cl_platform_id cpPlatform;        // OpenCL platform
 	cl_device_id device_id;           // device ID
@@ -129,4 +155,38 @@ int main(int argc, char* argv[]) {
 	cl_program program;               // program
 	cl_kernel kernel;                 // kernel
 
+	// getting the info for the OpenCL stuffs: platforms, devices, contexes
+	// bind to platform + ID for device
+    err = clGetPlatformIDs(1, &cpPlatform, NULL);
+	err = clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_GPU, 1, &device_id, NULL); // specifically using GPU
+
+	// creating context and command queue
+	context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
+	queue = clCreateCommandQueue(context, device_id, 0, &err);
+
+	// compute the program fro mthe source buffer and building the program executable
+	string sourceString = loadKernelSource(PROGRAM_FILE); // have to get the thing as str
+	const char* sourcePointer = sourceString.c_str();
+	size_t sourceSize = sourceString.length();
+
+	program = clCreateProgramWithSource(context, 1, &sourcePointer, &sourceSize, &err);
+	err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL); // passing 0 is telling compiling for every device in context
+	checkBuildError(err, program, device_id); // checking we ok
+
+	// creating kernel in the program to be run
+	kernel = clCreateKernel(program, "updateGrid", &err);
+
+
+	// creating input and output arrays in device memory for calculation
+	d_gridA = clCreateBuffer(context, CL_MEM_READ_WRITE, dataSize, NULL, NULL);
+	d_gridB = clCreateBuffer(context, CL_MEM_READ_WRITE, dataSize, NULL, NULL);
+
+	// write data set into input array + setting arguments to compute kernel
+	// not giving one to gridB bc that's the output first gen
+	err = clEnqueueWriteBuffer(queue, d_gridA, CL_TRUE, 0, dataSize, grid.data(), 0, NULL, NULL);
+	err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_gridA);
+
+
+	// executing kernel over entire range of data set
+	err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, &globalWorkGroupSize, &localWorkGroupSize, 0, NULL, NULL);
 }
