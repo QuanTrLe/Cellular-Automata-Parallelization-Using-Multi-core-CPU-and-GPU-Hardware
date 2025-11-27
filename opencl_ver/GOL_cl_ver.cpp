@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
 	auto start_time = chrono::high_resolution_clock::now();
 
 	// details of grid and running
-	int rows = 512, columns = 512;
+	int rows = 1024, columns = 1024;
 	int paddedRows = rows + 2, paddedColumns = columns + 2;
 
 	int generationLimit = 10000;
