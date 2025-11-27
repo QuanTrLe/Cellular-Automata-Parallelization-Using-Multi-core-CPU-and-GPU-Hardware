@@ -40,7 +40,3 @@ __kernel void updateGrid(
     // but if 2 then only alive if was currently alive
     newGrid[cellIndex] = (count == 3) | (count == 2 && oldGrid[cellIndex]);
 }
-
-
-// too long a function?
-// if statements?

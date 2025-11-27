@@ -70,19 +70,23 @@ void printGrid(const vector<uint8_t>& grid, int rows, int cols, int paddedCols) 
 
 
 int main(int argc, char* argv[]) {
+	// start time randomly just putting here
+	// making sure we overshoot the time rather than leaving out actual time
+	auto start_time = chrono::high_resolution_clock::now();
+
 	// details of grid and running
-	int rows = 16, columns = 16;
+	int rows = 512, columns = 512;
 	int paddedRows = rows + 2, paddedColumns = columns + 2;
 
-	int generationLimit = 10;
+	int generationLimit = 10000;
 
 	size_t globalWorkGroupSize[2];
 	size_t localWorkGroupSize[2];
 	cl_int err; // for reporting error codes
 	
 	// for the below we can jsut pass NULL to let it auto decide
-	localWorkGroupSize[0] = 8; // # of work items in each local work group
-	localWorkGroupSize[1] = 8;
+	localWorkGroupSize[0] = 16; // # of work items in each local work group
+	localWorkGroupSize[1] = 16;
 	globalWorkGroupSize[0] = (size_t) ceil(columns / (float)localWorkGroupSize[0]) * localWorkGroupSize[0]; // # of total work items, localSize MUST be devisor
 	globalWorkGroupSize[1] = (size_t) ceil(rows / (float)localWorkGroupSize[1]) * localWorkGroupSize[1];
 
@@ -148,7 +152,7 @@ int main(int argc, char* argv[]) {
 
 	// executing kernel over entire range of data set
 	// go over til we hti the generation limit, ping pong the grid we're writing on as newGrid
-	cout << "Running" << generationLimit << " generations..." << endl;
+	cout << "Running " << generationLimit << " generations..." << endl;
 
 	for (int i = 0; i < generationLimit; i++) {
 		// setting the grid arguments for each generation, changing what grid we write to and what we use as base grid
@@ -168,8 +172,13 @@ int main(int argc, char* argv[]) {
 	cl_mem finalResultBuffer = (generationLimit % 2 == 0) ? d_gridA : d_gridB; // which grid to read from
 	clEnqueueReadBuffer(queue, finalResultBuffer, CL_TRUE, 0, dataSize, grid.data(), 0, NULL, NULL);
 
-	cout << "\nFinal Grid State (GPU Result):" << endl;
-	printGrid(grid, rows, columns, paddedColumns);
+	// disabled these bc grid too big to print out and be useful anyway
+	// cout << "\nFinal Grid State (GPU Result):" << endl;
+	// printGrid(grid, rows, columns, paddedColumns);
+	// end clock and time
+	auto end_time = chrono::high_resolution_clock::now();
+	chrono::duration<double> elapsed = end_time - start_time;
+	cout << "Total serial execution time: " << elapsed.count() << " seconds." << endl;
 
 
 	// free all the resources we held
