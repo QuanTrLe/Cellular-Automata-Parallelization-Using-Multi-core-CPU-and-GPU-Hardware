@@ -3,7 +3,7 @@
 #include <cstdlib> // for rand() and atoi()
 #include <ctime>   // for seeding random
 
-#include "GOL_cl_ver.h"
+#include "GOL_cl_ver.cpp"
 
 using namespace std;
 
@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
     // 1. CONFIGURATION
     // ---------------------------------------------------------
     // Set defaults matching your request
-    int generations = 1000;
+    int generations = 10000;
     int gridSize = 512;
     int workGroupSize = 16;
 
