@@ -21,7 +21,10 @@
     <ClCompile Include="Opencl_check.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Test_runner.cpp">
+    <ClCompile Include="Test_generic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Test_generation_count.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
