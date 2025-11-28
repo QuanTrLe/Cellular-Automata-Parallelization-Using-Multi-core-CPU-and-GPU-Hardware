@@ -169,8 +169,6 @@ public:
 
 		// executing kernel over entire range of data set
 		// go over til we hti the generation limit, ping pong the grid we're writing on as newGrid
-		cout << "Running " << generationLimit << " generations..." << endl;
-
 		for (int i = 0; i < generationLimit; i++) {
 			// setting the grid arguments for each generation, changing what grid we write to and what we use as base grid
 			err = clSetKernelArg(kernel, i % 2, sizeof(cl_mem), &d_gridA);
