@@ -20,8 +20,8 @@ int main(int argc, char* argv[]) {
 
     // Benchmark Loop Settings
     int startGen = 1;
-    int endGen = 1000;
-    int stepGen = 100;
+    int endGen = 10000;
+    int stepGen = 1000;
     int repeats = 15;
 
     // ---------------------------------------------------------
@@ -44,7 +44,8 @@ int main(int argc, char* argv[]) {
 
     try {
         // Loop over generation counts: 1, 101, 201, ...
-        for (int gen = startGen; gen <= endGen; gen += stepGen) {
+        // the weird step count is just to -1 so that it goes to 100 instead of 101
+        for (int gen = startGen; gen <= endGen; gen += (stepGen + (-1 * (gen == 1)))) {
 
             double totalTime = 0.0;
 
