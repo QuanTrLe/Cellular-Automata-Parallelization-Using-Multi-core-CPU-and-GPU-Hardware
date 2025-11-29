@@ -6,8 +6,6 @@
 
 #include "GOL_cl_ver.cpp"
 
-using namespace std;
-
 int main(int argc, char* argv[]) {
     // ---------------------------------------------------------
     // 1. CONFIGURATION
@@ -65,7 +63,7 @@ int main(int argc, char* argv[]) {
             double meanTime = totalTime / repeats;
 
             // Output in CSV format: "Percent, Time"
-            cout << "Percentage: " << p << "% gives meantime " << meanTime << endl;
+            cout << "Percentage " << p << "% gives meantime " << meanTime << endl;
         }
 
     }

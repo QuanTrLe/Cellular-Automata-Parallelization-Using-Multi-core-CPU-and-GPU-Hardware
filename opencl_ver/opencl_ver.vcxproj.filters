@@ -30,6 +30,9 @@
     <ClCompile Include="Test_grid_size.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Test_activity_time.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="game_of_life.cl" />
