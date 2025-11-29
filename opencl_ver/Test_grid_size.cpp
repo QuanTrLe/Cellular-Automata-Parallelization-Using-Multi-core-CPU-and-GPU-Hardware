@@ -17,9 +17,9 @@ int main(int argc, char* argv[]) {
     int workGroupSize = 16;
 
     // Benchmark Loop Settings: Grid Size
-    int startGrid = 128;
-    int endGrid = 2048;
-    int stepGrid = 32;
+    int startGrid = 500;
+    int endGrid = 600;
+    int stepGrid = 1;
     int repeats = 15;
 
     // ---------------------------------------------------------
