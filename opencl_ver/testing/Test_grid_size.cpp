@@ -4,7 +4,7 @@
 #include <ctime>   
 #include <numeric> 
 
-#include "../GOL_cl_ver.cpp"
+#include "..\GOL_cl_ver.cpp"
 
 using namespace std;
 
