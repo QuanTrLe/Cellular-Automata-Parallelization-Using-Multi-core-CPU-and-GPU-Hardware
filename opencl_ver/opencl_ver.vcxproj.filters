@@ -21,16 +21,16 @@
     <ClCompile Include="Opencl_check.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Test_generic.cpp">
+    <ClCompile Include="testing\Test_activity_time.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Test_generation_count.cpp">
+    <ClCompile Include="testing\Test_generation_count.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Test_grid_size.cpp">
+    <ClCompile Include="testing\Test_generic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Test_activity_time.cpp">
+    <ClCompile Include="testing\Test_grid_size.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
