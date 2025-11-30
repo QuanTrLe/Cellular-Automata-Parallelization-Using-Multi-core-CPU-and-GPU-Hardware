@@ -55,12 +55,7 @@ void run_simulation(vector<uint8_t>& currentGrid, vector<uint8_t>& newGrid, int 
                 int index = r * paddedCols + c; // calc index
                 int n = countNeighbors(currentGrid, r, c, paddedCols); // how many neighbors we have
 
-                if (currentGrid[index]) {
-                    newGrid[index] = (n == 2 || n == 3); // if we dead or not
-                }
-                else {
-                    newGrid[index] = (n == 3); // we becomign alive?
-                }
+                newGrid[index] = (n == 3) | (n == 2 && currentGrid[index]);
             }
         }
 
