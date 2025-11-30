@@ -92,7 +92,7 @@ public:
                 int index = r * paddedSize + c;
                 int n = countNeighbors(currentGrid, r, c, paddedSize);
 
-                newGrid[cellIndex] = (count == 3) | (count == 2 && oldGrid[cellIndex]);
+                newGrid[index] = (n == 3) | (n == 2 && currentGrid[index]);
             }
 
             // remember to update to the new grid after checking everything
