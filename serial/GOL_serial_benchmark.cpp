@@ -16,16 +16,16 @@ int countNeighbors(const vector<uint8_t>& grid, int r, int c, int paddedCols) {
 
     // variable arithmetic from the paper without any bounds-checking overhead
     // for cases of border padding, they should be auto 0
-    if (grid[idx - paddedCols - 1]) count++; // top from left to right
-    if (grid[idx - paddedCols])     count++;
-    if (grid[idx - paddedCols + 1]) count++;
+    count += grid[idx - paddedCols - 1];     // top from left to right
+    count += grid[idx - paddedCols];
+    count += grid[idx - paddedCols + 1];
 
-    if (grid[idx - 1])               count++; // mid left and right
-    if (grid[idx + 1])               count++;
+    count += grid[idx - 1];                 // mid left and right
+    count += grid[idx + 1];
 
-    if (grid[idx + paddedCols - 1]) count++; // bottom from left to right
-    if (grid[idx + paddedCols])     count++;
-    if (grid[idx + paddedCols + 1]) count++;
+    count += grid[idx + paddedCols - 1];    // bottom from left to right
+    count += grid[idx + paddedCols];
+    count += grid[idx + paddedCols + 1];
 
     return count;
 }
