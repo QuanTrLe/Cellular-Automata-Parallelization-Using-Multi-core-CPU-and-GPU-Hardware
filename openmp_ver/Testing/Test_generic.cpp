@@ -3,7 +3,7 @@
 #include <cstdlib> // for rand() and atoi()
 #include <ctime>   // for seeding random
 
-#include "GOL_mp_ver.cpp"
+#include "../GOL_mp_ver.cpp"
 
 using namespace std;
 

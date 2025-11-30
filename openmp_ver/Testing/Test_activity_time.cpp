@@ -4,7 +4,7 @@
 #include <ctime>   
 #include <numeric> 
 
-#include "GOL_mp_ver.cpp"
+#include "../GOL_mp_ver.cpp"
 
 int main(int argc, char* argv[]) {
     // ---------------------------------------------------------

@@ -6,7 +6,7 @@
 
 // Include your implementation file directly
 // Ensure GOL_mp_ver.cpp is "Excluded from Build" in Visual Studio properties
-#include "GOL_mp_ver.cpp"
+#include "../GOL_mp_ver.cpp"
 
 using namespace std;
 
