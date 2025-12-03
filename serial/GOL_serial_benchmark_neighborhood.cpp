@@ -10,31 +10,40 @@ class GOL_serial {
 private:
     int generationCount;
     int gridSize;
+    int neighborhoodSize;
     int paddedSize;
     vector<uint8_t> currentGrid;
     vector<uint8_t> newGrid;
 
-    // Count neighbors of a given cell
-    // Inline for performance in serial execution
+    // count neighbors of a given cell
+    // inline for performance in serial execution
     inline int countNeighbors(const vector<uint8_t>& grid, int r, int c, int paddedCols) {
-        int idx = r * paddedCols + c;
+        int count = 0;
+        int centerIndex = r * paddedCols + c;
 
-        // Summing neighbors
-        int count = grid[idx - paddedCols - 1] + grid[idx - paddedCols] + grid[idx - paddedCols + 1]; // top from left -> right
+        // iterating through the size of the neighborhood to get cells on that square radius
+        for (int y = -neighborhoodSize; y <= neighborhoodSize; ++y) {
+            for (int x = -neighborhoodSize; x <= neighborhoodSize; ++x) {
+                if (y == 0 && x == 0) continue; // skip center cell since it's the one asking
 
-        count += grid[idx - 1] + grid[idx + 1]; // left and right of middle row
+                // calculate the neighbor's 1D index
+                // (y * paddedCols) moves up/down rows
+                // x moves left/right columns
+                int neighborIndex = centerIndex + (y * paddedCols) + x;
 
-        count += grid[idx + paddedCols - 1] + grid[idx + paddedCols] + grid[idx + paddedCols + 1]; // bottom left -> right
-
+                count += grid[neighborIndex];
+            }
+        }
         return count;
     }
 
 public:
     // Constructor matching the MP version
-    GOL_serial(int generationCount = 1000, int gridSize = 512) {
+    GOL_serial(int generationCount = 1000, int gridSize = 512, int neighborhoodSize = 1) {
         this->generationCount = generationCount;
         this->gridSize = gridSize;
-        this->paddedSize = gridSize + 2;
+        this->neighborhoodSize = neighborhoodSize;
+        this->paddedSize = gridSize + (neighborhoodSize * 2);
 
         // Resize vectors immediately
         // Initialize with 0
@@ -54,7 +63,7 @@ public:
         for (int r = 0; r < gridSize; r++) {
             for (int c = 0; c < gridSize; c++) {
                 int inputIndex = r * gridSize + c;
-                int paddedIndex = (r + 1) * paddedSize + (c + 1);
+                int paddedIndex = (r + neighborhoodSize) * paddedSize + (c + neighborhoodSize);
 
                 currentGrid[paddedIndex] = inputGrid[inputIndex];
             }
@@ -69,8 +78,8 @@ public:
 
             // Serial nested loops (standard row-major traversal)
             // Starting at 1 to skip padding
-            for (int r = 1; r <= gridSize; ++r) {
-                for (int c = 1; c <= gridSize; ++c) {
+            for (int r = neighborhoodSize; r < gridSize + neighborhoodSize; ++r) {
+                for (int c = neighborhoodSize; c < gridSize + neighborhoodSize; ++c) {
 
                     int index = r * paddedSize + c;
                     int n = countNeighbors(currentGrid, r, c, paddedSize);
