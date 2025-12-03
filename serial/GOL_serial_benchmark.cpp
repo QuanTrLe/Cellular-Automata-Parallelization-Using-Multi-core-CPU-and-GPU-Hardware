@@ -20,15 +20,11 @@ private:
         int idx = r * paddedCols + c;
 
         // Summing neighbors
-        int count =
-            grid[idx - paddedCols - 1] +
-            grid[idx - paddedCols] +
-            grid[idx - paddedCols + 1] +
-            grid[idx - 1] +
-            grid[idx + 1] +
-            grid[idx + paddedCols - 1] +
-            grid[idx + paddedCols] +
-            grid[idx + paddedCols + 1];
+        int count = grid[idx - paddedCols - 1] + grid[idx - paddedCols] + grid[idx - paddedCols + 1]; // top left -> right
+
+        count += grid[idx - 1] + grid[idx + 1]; // left and right of middle row
+
+        count += grid[idx + paddedCols - 1] + grid[idx + paddedCols] + grid[idx + paddedCols + 1]; // bottom left -> right
 
         return count;
     }
