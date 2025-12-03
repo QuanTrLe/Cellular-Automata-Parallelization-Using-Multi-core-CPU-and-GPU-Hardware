@@ -6,7 +6,7 @@
 
 using namespace std;
 
-class GOL_serial {
+class GOL_serial_neighborhood {
 private:
     int generationCount;
     int gridSize;
@@ -39,7 +39,7 @@ private:
 
 public:
     // Constructor matching the MP version
-    GOL_serial(int generationCount = 1000, int gridSize = 512, int neighborhoodSize = 1) {
+    GOL_serial_neighborhood(int generationCount = 1000, int gridSize = 512, int neighborhoodSize = 1) {
         this->generationCount = generationCount;
         this->gridSize = gridSize;
         this->neighborhoodSize = neighborhoodSize;
