@@ -25,8 +25,8 @@ private:
 	int workGroupSize;
 
 	int neighborRadius;
-	int surviveLowerThreshold;
-	int surviveUpperThreshold;
+	//int surviveLowerThreshold;
+	//int surviveUpperThreshold;
 
 	vector<uint8_t> gridData;
 
@@ -39,8 +39,8 @@ public:
 		this->workGroupSize = workGroupSize;
 
 		int neighbors = (2 * neighborRadius + 1) * (2 * neighborRadius + 1) - 1;
-		surviveLowerThreshold = static_cast<int>(floor(neighbors * 2.0 / 8.0));
-		surviveUpperThreshold = static_cast<int>(ceil(neighbors * 3.0 / 8.0));
+		//surviveLowerThreshold = static_cast<int>(floor(neighbors * 2.0 / 8.0));
+		//surviveUpperThreshold = static_cast<int>(ceil(neighbors * 3.0 / 8.0));
 
 		paddedSize = gridSize + 2 * neighborRadius;
 		// resize vector immediately to match size
@@ -174,8 +174,8 @@ public:
 		err |= clSetKernelArg(kernel, 3, sizeof(int), &columns);
 		err |= clSetKernelArg(kernel, 4, sizeof(int), &paddedColumns);
 		err |= clSetKernelArg(kernel, 5, sizeof(int), &neighborRadius);
-		err |= clSetKernelArg(kernel, 6, sizeof(int), &surviveLowerThreshold);
-		err |= clSetKernelArg(kernel, 7, sizeof(int), &surviveUpperThreshold);
+		//err |= clSetKernelArg(kernel, 6, sizeof(int), &surviveLowerThreshold);
+		//err |= clSetKernelArg(kernel, 7, sizeof(int), &surviveUpperThreshold);
 
 
 		// executing kernel over entire range of data set
