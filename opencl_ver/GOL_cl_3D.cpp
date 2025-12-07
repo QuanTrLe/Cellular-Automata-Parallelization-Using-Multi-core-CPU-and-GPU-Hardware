@@ -23,45 +23,40 @@ private:
 	int gridSize;
 	int paddedSize;
 	int workGroupSize;
-
-	int neighborRadius;
-	//int surviveLowerThreshold;
-	//int surviveUpperThreshold;
-
 	vector<uint8_t> gridData;
 
 public:
 	// constructor for the easily passed things
-	GOL_cl(int generationCount = 1000, int gridSize = 512, int workGroupSize = 16, int neighborRadius = 1) {
+	GOL_cl(int generationCount = 1000, int gridSize = 512, int workGroupSize = 16) {
 		this->generationCount = generationCount;
+
 		this->gridSize = gridSize;
-		this->neighborRadius = neighborRadius;
+		paddedSize = gridSize + 2;
+
 		this->workGroupSize = workGroupSize;
 
-		int neighbors = (2 * neighborRadius + 1) * (2 * neighborRadius + 1) - 1;
-		//surviveLowerThreshold = static_cast<int>(floor(neighbors * 2.0 / 8.0));
-		//surviveUpperThreshold = static_cast<int>(ceil(neighbors * 3.0 / 8.0));
-
-		paddedSize = gridSize + 2 * neighborRadius;
 		// resize vector immediately to match size
-		gridData.resize(paddedSize * paddedSize, 0);
+		gridData.resize(paddedSize * paddedSize * paddedSize, 0);  // <-- 3 times now
 	}
 
 	// setup spcifically for passing the initial grid / cell distribution in
 	void setup_grid(const vector<uint8_t>& inputGrid) {
-		if (inputGrid.size() != gridSize * gridSize) {
-			std::cerr << "Error: Input size (" << inputGrid.size() << ") does not match expected grid size (" << gridSize * gridSize << ")!" << std::endl;
+		int unpaddedVolume = gridSize * gridSize * gridSize;
+		if (inputGrid.size() != unpaddedVolume) {
+			std::cerr << "Error: Input size (" << inputGrid.size() << ") does not match expected grid size (" << unpaddedVolume << ")!" << std::endl;
 			return;
 		}
 
 		// copy data from the given grid (unpadded) into the padded grid
 		// iterates over row and column to find index and put it in
-		for (int r = 0; r < gridSize; r++) {
-			for (int c = 0; c < gridSize; c++) {
-				int inputIndex = r * gridSize + c;
-				int paddedIndex = (r + neighborRadius) * paddedSize + (c + neighborRadius);
+		for (int z = 0; z < gridSize; z++) {
+			for (int r = 0; r < gridSize; r++) {
+				for (int c = 0; c < gridSize; c++) {
+					int inputIndex = z * gridSize * gridSize + r * gridSize + c;
+					int paddedIndex = (z + 1) * paddedSize * paddedSize + (r + 1) * paddedSize + (c + 1);
 
-				gridData[paddedIndex] = inputGrid[inputIndex];
+					gridData[paddedIndex] = inputGrid[inputIndex];
+				}
 			}
 		}
 	}
@@ -111,26 +106,28 @@ public:
 		auto start_time = chrono::high_resolution_clock::now();
 
 		// details of grid and running
-		int rows = gridSize, columns = gridSize;
-		int paddedRows = paddedSize, paddedColumns = paddedSize;
+		int rows = gridSize, columns = gridSize, depth = gridSize;
+		int paddedRows = paddedSize, paddedColumns = paddedSize, paddedDepth = paddedSize;
 
 		int generationLimit = generationCount;
 
-		size_t globalWorkGroupSize[2];
-		size_t localWorkGroupSize[2];
+		size_t globalWorkGroupSize[3];
+		size_t localWorkGroupSize[3];
 		cl_int err; // for reporting error codes
 
 		// for the below we can jsut pass NULL to let it auto decide
 		localWorkGroupSize[0] = workGroupSize; // # of work items in each local work group
 		localWorkGroupSize[1] = workGroupSize;
+		localWorkGroupSize[2] = workGroupSize;
 		globalWorkGroupSize[0] = (size_t)ceil(columns / (float)localWorkGroupSize[0]) * localWorkGroupSize[0]; // # of total work items, localSize MUST be devisor
 		globalWorkGroupSize[1] = (size_t)ceil(rows / (float)localWorkGroupSize[1]) * localWorkGroupSize[1];
+		globalWorkGroupSize[2] = (size_t)ceil(depth / (float)localWorkGroupSize[2]) * localWorkGroupSize[2];
 
 
 		// device / kernel input buffers
 		cl_mem d_gridA; // d_ is jsut for marking as for device
 		cl_mem d_gridB; // these two will be changing as old and new later
-		size_t dataSize = paddedSize * paddedSize * sizeof(uint8_t); // how big we making these
+		size_t dataSize = paddedSize * paddedSize * paddedSize * sizeof(uint8_t); // how big we making these
 
 
 		// OpenCL information
@@ -172,21 +169,22 @@ public:
 		err = clEnqueueWriteBuffer(queue, d_gridA, CL_TRUE, 0, dataSize, gridData.data(), 0, NULL, NULL);
 		err |= clSetKernelArg(kernel, 2, sizeof(int), &rows); // setting const args for the kernel func
 		err |= clSetKernelArg(kernel, 3, sizeof(int), &columns);
-		err |= clSetKernelArg(kernel, 4, sizeof(int), &paddedColumns);
-		err |= clSetKernelArg(kernel, 5, sizeof(int), &neighborRadius);
-		//err |= clSetKernelArg(kernel, 6, sizeof(int), &surviveLowerThreshold);
-		//err |= clSetKernelArg(kernel, 7, sizeof(int), &surviveUpperThreshold);
+		err |= clSetKernelArg(kernel, 4, sizeof(int), &depth);
+		err |= clSetKernelArg(kernel, 5, sizeof(int), &paddedSize);
 
 
 		// executing kernel over entire range of data set
 		// go over til we hti the generation limit, ping pong the grid we're writing on as newGrid
 		for (int i = 0; i < generationLimit; i++) {
 			// setting the grid arguments for each generation, changing what grid we write to and what we use as base grid
-			err = clSetKernelArg(kernel, i % 2, sizeof(cl_mem), &d_gridA);
-			err |= clSetKernelArg(kernel, (i + 1) % 2, sizeof(cl_mem), &d_gridB);
+			cl_mem src = (i % 2 == 0) ? d_gridA : d_gridB;
+			cl_mem dst = (i % 2 == 0) ? d_gridB : d_gridA;
+
+			err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &src);
+			err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &dst);
 			checkError(err, "Setting Kernel Args");
 
-			err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkGroupSize, localWorkGroupSize, 0, NULL, NULL);
+			err = clEnqueueNDRangeKernel(queue, kernel, 3, NULL, globalWorkGroupSize, localWorkGroupSize, 0, NULL, NULL);
 			checkError(err, "EnqueueNDRangeKernel");
 		}
 
