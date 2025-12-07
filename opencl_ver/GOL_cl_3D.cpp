@@ -12,7 +12,7 @@
 #include<sstream>
 #include <CL/cl.h>
 
-#define PROGRAM_FILE "neighbors.cl"
+#define PROGRAM_FILE "3D.cl"
 #define KERNEL_FUNC "updateGrid"
 
 using namespace std;
