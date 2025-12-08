@@ -17,7 +17,7 @@
 
 using namespace std;
 
-class GOL_cl {
+class GOL_cl_neighborhood {
 private:
 	int generationCount;
 	int gridSize;
@@ -32,7 +32,7 @@ private:
 
 public:
 	// constructor for the easily passed things
-	GOL_cl(int generationCount = 1000, int gridSize = 512, int workGroupSize = 16, int neighborRadius = 1) {
+	GOL_cl_neighborhood(int generationCount = 1000, int gridSize = 512, int workGroupSize = 16, int neighborRadius = 1) {
 		this->generationCount = generationCount;
 		this->gridSize = gridSize;
 		this->neighborRadius = neighborRadius;

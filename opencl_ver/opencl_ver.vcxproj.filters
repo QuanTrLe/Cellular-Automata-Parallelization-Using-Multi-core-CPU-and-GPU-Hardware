@@ -33,6 +33,12 @@
     <ClCompile Include="testing\Test_grid_size.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="testing\Test_neighborhood.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GOL_cl_neighbors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="game_of_life.cl" />
