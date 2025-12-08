@@ -11,7 +11,7 @@
 #include <omp.h>
 
 using namespace std;
-class GOL_mp {
+class GOL_mp_neighborhood {
 private:
     int generationCount;
     int gridSize;
@@ -45,7 +45,7 @@ private:
 
 public:
     // constructor for the easily passed things
-    GOL_mp(int generationCount = 1000, int gridSize = 512, int neighborRadius = 1) {
+    GOL_mp_neighborhood(int generationCount = 1000, int gridSize = 512, int neighborRadius = 1) {
         this->generationCount = generationCount;
         this->gridSize = gridSize;
         this->neighborRadius = neighborRadius;

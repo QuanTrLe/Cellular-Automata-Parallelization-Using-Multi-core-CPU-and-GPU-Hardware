@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
                 for (int r = 0; r < repeats; r++) {
                     // Instantiate class with current Neighborhood Size (n)
                     // Assuming class is named 'GOL_mp' based on your snippet
-                    GOL_mp sim(generations, gridSize, n);
+                    GOL_mp_neighborhood sim(generations, gridSize, n);
 
                     sim.setup_grid(inputData);
                     totalTime += sim.run_simulation();
