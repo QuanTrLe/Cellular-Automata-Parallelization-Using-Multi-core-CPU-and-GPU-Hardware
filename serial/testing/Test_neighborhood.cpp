@@ -17,9 +17,9 @@ int main(int argc, char* argv[]) {
     int generations = 1000; // Matches your provided default
     int repeats = 15;        // Standard benchmarking repeats
 
-    // target densities for neighborhoods 1 through 5
+    // target densities for neighborhoods 1 through 10
     // index 0 unused, Index 1 is 50%, Index 2 is 24.57%, etc.
-    const double targetDensities[] = { 0.0, 50.0, 24.57, 14.46, 9.59, 6.89 };
+    const double targetDensities[] = { 0.0, 50.0, 24.57, 14.46, 9.59, 6.89, 5.17, 4.03, 3.23, 2.64, 2.21 };
 
     srand(static_cast<unsigned int>(time(0)));
 
@@ -35,8 +35,8 @@ int main(int argc, char* argv[]) {
     cout << "\nNeighborhood_Size, Density_Percent, Mean_Time_Seconds" << endl;
 
     try {
-        // ioterate neighborhood sizes 1 to 5
-        for (int n = 1; n <= 5; ++n) {
+        // ioterate neighborhood sizes 1 to 10
+        for (int n = 1; n <= 10; ++n) {
 
             // run two tests per neighborhood size: optimal density vs 0
             double densitiesToTest[] = { targetDensities[n], 0.0 };
